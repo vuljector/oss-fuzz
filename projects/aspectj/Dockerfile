@@ -27,7 +27,7 @@ WORKDIR ${SRC}
 #
 # clone repository
 #
-RUN git clone https://github.com/eclipse/org.aspectj
+RUN git clone https://github.com/eclipse-aspectj/aspectj
 
 ADD pom.xml build.sh ${SRC}/
 ADD src/ ${SRC}/src/

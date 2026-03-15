@@ -29,7 +29,7 @@ RUN wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
 RUN git clone --depth 1 https://github.com/golang/go go-dev
 RUN git clone --depth 1 https://github.com/golang/crypto go-crypto
 RUN git clone --depth 1 https://github.com/golang/sys.git go-sys
-RUN git clone --depth 1 https://github.com/guidovranken/cryptofuzz
+RUN git clone --depth 1 https://github.com/MozillaSecurity/cryptofuzz
 RUN git clone --depth 1 https://github.com/guidovranken/cryptofuzz-corpora
 RUN git clone --depth 1 https://github.com/openssl/openssl
 RUN git clone --depth 1 https://boringssl.googlesource.com/boringssl
