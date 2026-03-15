@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
-_DEFAULT_OSS_FUZZ_DIR = _SCRIPT_DIR.parent
+_DEFAULT_OSS_FUZZ_DIR = _SCRIPT_DIR.parent.parent
 
 
 # ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--oss-fuzz-dir",
         default=str(_DEFAULT_OSS_FUZZ_DIR),
-        help="Path to local oss-fuzz clone (default: parent of this script's directory)",
+        help="Path to local oss-fuzz clone (default: parent of vuljector dir)",
     )
     parser.add_argument(
         "--org",
@@ -122,7 +122,7 @@ def main() -> None:
     print("=== Summary ===")
     print(f"  Total:   {total}")
     print(f"  OK:      {len(succeeded)}")
-    print(f"  Failed:  {len(failed)}")
+    print(f"  Failed: {len(failed)}")
     if failed:
         print()
         print("Failed projects:")

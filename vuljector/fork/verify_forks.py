@@ -9,9 +9,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-from _github import extract_urls, parse_github_nwo, repo_exists
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+from shared._github import extract_urls, parse_github_nwo, repo_exists
 
-_DEFAULT_OSS_FUZZ_DIR = Path(__file__).resolve().parent.parent
+_DEFAULT_OSS_FUZZ_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # ---------------------------------------------------------------------------
@@ -25,7 +28,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--oss-fuzz-dir",
         default=str(_DEFAULT_OSS_FUZZ_DIR),
-        help="Path to local oss-fuzz clone (default: parent of this script's directory)",
+        help="Path to local oss-fuzz clone (default: parent of vuljector dir)",
     )
     parser.add_argument("--org", default="vuljector", help="Target GitHub org")
     parser.add_argument(
