@@ -1,0 +1,100 @@
+# Detection rules checked in order; first match wins.
+#
+# signals:    files checked at /src/{target_dir}
+# setup:      optional setup commands (run before the test command)
+# cmd:        test command run from /src/{target_dir}
+# framework:  parser key used by parse_results.py
+# needs_sanitizer_clear: if true, prepend sanitizer/flag clearing to the script
+#
+# NOTE: OSS-Fuzz images bake in SANITIZER_FLAGS, LIB_FUZZING_ENGINE, and
+# compiler flags intended for fuzzer builds.  Any rule that compiles natively
+# must set needs_sanitizer_clear: true so those flags are cleared.
+
+# ── Python ───────────────────────────────────────────────────────────────
+
+- name: pytest
+  signals: [pytest.ini, conftest.py, setup.cfg, pyproject.toml, setup.py]
+  setup: pip3 install -e . pytest -q 2>/dev/null || pip3 install pytest -q 2>/dev/null || true
+  cmd: python3 -m pytest -v
+  framework: pytest
+
+# ── Rust ─────────────────────────────────────────────────────────────────
+
+- name: cargo
+  signals: [Cargo.toml]
+  needs_sanitizer_clear: true
+  cmd: cargo test
+  framework: cargo
+
+# ── Go ───────────────────────────────────────────────────────────────────
+
+- name: go
+  signals: [go.mod]
+  cmd: go test ./... -v -count=1
+  framework: gotest
+
+# ── CMake ────────────────────────────────────────────────────────────────
+
+- name: cmake
+  signals: [CMakeLists.txt]
+  needs_sanitizer_clear: true
+  cmd: >-
+    mkdir -p /tmp/build && cd /tmp/build
+    && cmake /src/{target_dir} -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+    && cmake --build . -j$(nproc)
+    && ctest --output-on-failure
+  framework: ctest
+
+# ── Java: Maven ──────────────────────────────────────────────────────────
+
+- name: maven-wrapper
+  signals: [mvnw, .mvn/wrapper/maven-wrapper.properties]
+  cmd: ./mvnw test -pl .
+  framework: maven
+
+- name: maven
+  signals: [pom.xml]
+  cmd: mvn test
+  framework: maven
+
+# ── Java: Gradle ─────────────────────────────────────────────────────────
+
+- name: gradle-wrapper
+  signals: [gradlew, gradle/wrapper/gradle-wrapper.properties]
+  cmd: ./gradlew test --no-daemon
+  framework: gradle
+
+- name: gradle
+  signals: [build.gradle, build.gradle.kts]
+  cmd: gradle test
+  framework: gradle
+
+# ── Meson ────────────────────────────────────────────────────────────────
+
+- name: meson
+  signals: [meson.build]
+  needs_sanitizer_clear: true
+  cmd: >-
+    meson setup /tmp/build --buildtype=debug
+    && meson test -C /tmp/build --print-errorlogs
+  framework: meson
+
+# ── Autotools ────────────────────────────────────────────────────────────
+
+- name: autotools
+  signals: [configure.ac, configure.in]
+  needs_sanitizer_clear: true
+  setup: >-
+    if [ ! -f configure ]; then autoreconf -fi 2>&1 | tail -1; fi
+    && ./configure 2>&1 | tail -1
+    && make -j$(nproc) 2>&1 | tail -1
+  cmd: make check
+  framework: generic
+
+# ── Node.js ──────────────────────────────────────────────────────────────
+
+- name: npm
+  signals: [package.json]
+  setup: npm install 2>&1 | tail -1
+  cmd: npm test
+  framework: jest

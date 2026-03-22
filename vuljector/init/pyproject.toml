@@ -1,0 +1,11 @@
+[project]
+name = "init"
+version = "0.1.0"
+description = "VulJector project initialization and test script generation"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dotenv>=0.9.9",
+    "litellm>=1.82.4",
+    "mini-swe-agent>=2.2.7",
+]
