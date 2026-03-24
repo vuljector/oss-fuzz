@@ -14,8 +14,11 @@
 
 - name: pytest
   signals: [pytest.ini, conftest.py, setup.cfg, pyproject.toml, setup.py]
-  setup: pip3 install -e . pytest -q 2>/dev/null || pip3 install pytest -q 2>/dev/null || true
-  cmd: python3 -m pytest -v
+  setup: >-
+    (pip3 install -e ".[test,tests,dev,testing,devel,extras]" pytest -q 2>/dev/null
+    || pip3 install -e . pytest -q 2>/dev/null
+    || pip3 install pytest -q 2>/dev/null) 2>/dev/null || true
+  cmd: python3 -m pytest -v --tb=short
   framework: pytest
 
 # ── Rust ─────────────────────────────────────────────────────────────────
@@ -49,23 +52,27 @@
 
 - name: maven-wrapper
   signals: [mvnw, .mvn/wrapper/maven-wrapper.properties]
-  cmd: ./mvnw test -pl .
+  setup: "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64; export PATH=\"$JAVA_HOME/bin:$PATH\""
+  cmd: GIT_DIR=/dev/null ./mvnw test -B -fn --no-transfer-progress
   framework: maven
 
 - name: maven
   signals: [pom.xml]
-  cmd: mvn test
+  setup: "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64; export PATH=\"$JAVA_HOME/bin:$PATH\"; apt-get update -qq 2>/dev/null && apt-get install -y -qq maven >/dev/null 2>&1"
+  cmd: mvn test -B -fn --no-transfer-progress
   framework: maven
 
 # ── Java: Gradle ─────────────────────────────────────────────────────────
 
 - name: gradle-wrapper
   signals: [gradlew, gradle/wrapper/gradle-wrapper.properties]
-  cmd: ./gradlew test --no-daemon
+  setup: "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64; export PATH=\"$JAVA_HOME/bin:$PATH\""
+  cmd: GIT_DIR=/dev/null ./gradlew test --no-daemon
   framework: gradle
 
 - name: gradle
   signals: [build.gradle, build.gradle.kts]
+  setup: "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64; export PATH=\"$JAVA_HOME/bin:$PATH\""
   cmd: gradle test
   framework: gradle
 
@@ -89,7 +96,7 @@
     && ./configure 2>&1 | tail -1
     && make -j$(nproc) 2>&1 | tail -1
   cmd: make check
-  framework: generic
+  framework: autotools
 
 # ── Node.js ──────────────────────────────────────────────────────────────
 
